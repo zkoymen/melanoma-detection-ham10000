@@ -1,0 +1,39 @@
+{
+  "accuracy": 0.9281437125748503,
+  "precision": 0.7006802721088435,
+  "recall": 0.6167664670658682,
+  "f1": 0.6560509554140127,
+  "roc_auc": 0.9103185843881101,
+  "train_time_sec": 5.695407390594482,
+  "inference_time_per_image_ms": 0.00013959304697895876,
+  "hyperparameters": {
+    "classifier": "XGBoost",
+    "deep_feature_sources": [
+      "resnet50",
+      "densenet121",
+      "efficientnet_b3",
+      "swin_tiny",
+      "vgg16_bn",
+      "alexnet"
+    ],
+    "handcrafted_dim": 2292,
+    "abcd_dim": 13,
+    "deep_dim": 13568,
+    "pca_components": 300,
+    "pca_explained_variance": 0.6274926662445068,
+    "balancing": "SMOTE-Tomek (train only)",
+    "train_class_counts_before": {
+      "0": 6230,
+      "1": 779
+    },
+    "train_class_counts_after": {
+      "0": 6230,
+      "1": 6230
+    },
+    "decision_threshold": 0.09,
+    "threshold_selection": "argmax F1 on validation set",
+    "val_f1_mlp": 0.6956521739130435,
+    "val_f1_xgb": 0.7129337539432177,
+    "notes": "Bansal2022 + Naeem2024 inspired hybrid fusion (handcrafted + ABCD + deep features)."
+  }
+}

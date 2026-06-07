@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environments
+.env
+.venv/
+venv/
+env/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Paper folder (excluded from repo)
+paper/
+
+# Data / large artifacts (kept out of git)
+*.npy
+*.h5
+*.pth
+*.ckpt
+checkpoints/
+data/

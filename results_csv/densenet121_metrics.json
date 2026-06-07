@@ -1,0 +1,14 @@
+{
+  "accuracy": 0.9208250166333999,
+  "precision": 0.6690140845070423,
+  "recall": 0.5688622754491018,
+  "f1": 0.6148867313915858,
+  "roc_auc": 0.9368568252716124,
+  "train_time_sec": 0.0,
+  "inference_time_per_image_ms": 7.669170459587417,
+  "hyperparameters": {
+    "recovered_from_checkpoint": true,
+    "decision_threshold_tta": 0.63,
+    "decision_threshold_single": 0.58
+  }
+}
