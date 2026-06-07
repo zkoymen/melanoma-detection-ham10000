@@ -1,0 +1,21 @@
+{
+  "accuracy": 0.9328010645375915,
+  "precision": 0.6987951807228916,
+  "recall": 0.6946107784431138,
+  "f1": 0.6966966966966966,
+  "roc_auc": 0.9540499838646062,
+  "train_time_sec": 0.0,
+  "inference_time_per_image_ms": 5.665896393079454,
+  "hyperparameters": {
+    "members": [
+      "alexnet",
+      "vgg16_bn",
+      "resnet50",
+      "efficientnet_b3",
+      "densenet121",
+      "swin_tiny"
+    ],
+    "weights": "uniform soft-vote",
+    "decision_threshold_tta": 0.5549999999999999
+  }
+}

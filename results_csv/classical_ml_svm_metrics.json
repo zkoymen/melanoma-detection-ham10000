@@ -1,0 +1,19 @@
+{
+  "accuracy": 0.8396540252827678,
+  "precision": 0.3576923076923077,
+  "recall": 0.5568862275449101,
+  "f1": 0.43559718969555034,
+  "roc_auc": 0.8350223206282046,
+  "train_time_sec": 31.011324644088745,
+  "inference_time_per_image_ms": 1.127240900000288,
+  "hyperparameters": {
+    "kernel": "rbf",
+    "C": 1.0,
+    "gamma": "scale",
+    "class_weight": "balanced",
+    "probability": true,
+    "random_state": 42,
+    "feature_dim_raw": 2292,
+    "pca_components": 200
+  }
+}
