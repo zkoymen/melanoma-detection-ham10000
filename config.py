@@ -81,24 +81,24 @@ FOCAL_BETA = 0.999              # effective number of samples (Cui et al. 2019)
 USE_WEIGHTED_SAMPLER = True     # WeightedRandomSampler -> roughly 50/50 batches
 
 
-# Conservative augmentation tuned for dermoscopic images. Mixup, CutMix and
-# RandAugment are intentionally disabled because they distort or replace the
-# lesion pixels that the ABCD diagnostic criteria depend on.
-AUG_ROTATION_DEG = 15
-AUG_COLOR_BRIGHTNESS = 0.10
-AUG_COLOR_CONTRAST = 0.10
-AUG_COLOR_SATURATION = 0.05
-AUG_COLOR_HUE = 0.02
-AUG_CROP_SCALE_MIN = 0.85
+# CNN augmentation (methods 3–8). CNNs learn pixel statistics directly and do
+# NOT use ABCD features — stronger augmentation is safe and beneficial here.
+# Method 10 (hybrid fusion) ignores these and uses its own conservative path.
+AUG_ROTATION_DEG = 30           # dermoscopy lesions have no natural orientation
+AUG_COLOR_BRIGHTNESS = 0.25     # camera/device variation across dermoscopes
+AUG_COLOR_CONTRAST = 0.25
+AUG_COLOR_SATURATION = 0.20     # device-dependent color shift
+AUG_COLOR_HUE = 0.05
+AUG_CROP_SCALE_MIN = 0.70       # allow larger crop variation
 AUG_CROP_SCALE_MAX = 1.00
-AUG_RANDOM_ERASING_P = 0.10
-AUG_RANDOM_ERASING_SCALE = (0.02, 0.10)
+AUG_RANDOM_ERASING_P = 0.20     # simulate occlusions (hair, ruler artifacts)
+AUG_RANDOM_ERASING_SCALE = (0.02, 0.20)
 
 RANDAUG_NUM_OPS = 0
 RANDAUG_MAGNITUDE = 0
-MIXUP_ALPHA = 0.0
-CUTMIX_ALPHA = 0.0
-MIXUP_PROB = 0.0
+MIXUP_ALPHA = 0.2               # re-enabled: soft labels work with FocalLoss
+CUTMIX_ALPHA = 0.0              # CutMix disabled: lesion structure must be intact
+MIXUP_PROB = 0.3                # apply Mixup to 30% of batches
 CUTMIX_PROB = 0.0
 
 
