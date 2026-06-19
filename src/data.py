@@ -30,6 +30,8 @@ _REQUIRED_FILES = (
     "X_all.npy", "y_all.npy", "ids_all.npy",
     "idx_train.npy", "idx_val.npy", "idx_test.npy",
 )
+_ISIC2019_X   = "X_isic2019_mel.npy"
+_ISIC2019_IDS = "ids_isic2019_mel.npy"
 
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
@@ -47,6 +49,13 @@ def _sync_local_cache(drive_dir: Path) -> Path:
         if not src.exists():
             raise FileNotFoundError(f"Missing on Drive: {src}")
         if not dst.exists() or dst.stat().st_size != src.stat().st_size:
+            print(f"  copying {name} ({src.stat().st_size / 1e6:.1f} MB) Drive -> local SSD")
+            shutil.copy(src, dst)
+    # Also cache ISIC 2019 arrays if they exist on Drive (optional)
+    for name in (_ISIC2019_X, _ISIC2019_IDS):
+        src = drive_dir / name
+        dst = _LOCAL_CACHE_DIR / name
+        if src.exists() and (not dst.exists() or dst.stat().st_size != src.stat().st_size):
             print(f"  copying {name} ({src.stat().st_size / 1e6:.1f} MB) Drive -> local SSD")
             shutil.copy(src, dst)
     return _LOCAL_CACHE_DIR
@@ -77,6 +86,50 @@ def load_arrays(data_dir: Path, use_local_cache: bool = True):
     idx_val = np.load(load_dir / "idx_val.npy")
     idx_test = np.load(load_dir / "idx_test.npy")
     return X, y, ids, idx_train, idx_val, idx_test
+
+
+def load_arrays_extended(data_dir: Path, use_local_cache: bool = True):
+    """Like load_arrays(), but appends ISIC 2019 melanoma images to training.
+
+    If X_isic2019_mel.npy exists in data_dir, it is appended after the
+    HAM10000 array. The new training indices point to the appended rows.
+    Val and test indices are unchanged (pure HAM10000 — fair comparison).
+
+    Returns same tuple as load_arrays():
+        X, y, ids, idx_train, idx_val, idx_test
+    """
+    X, y, ids, idx_train, idx_val, idx_test = load_arrays(data_dir, use_local_cache)
+
+    load_dir = _LOCAL_CACHE_DIR if (use_local_cache and Path("/content").exists()) else Path(data_dir)
+    x19_path = load_dir / _ISIC2019_X
+    ids19_path = load_dir / _ISIC2019_IDS
+
+    if not x19_path.exists():
+        print("[load_arrays_extended] X_isic2019_mel.npy not found — using HAM10000 only.")
+        print("  Run notebooks/12_isic2019_prep.ipynb first to build it.")
+        return X, y, ids, idx_train, idx_val, idx_test
+
+    X19 = np.load(x19_path)          # (N19, 448, 448, 3) uint8
+    ids19 = np.load(ids19_path, allow_pickle=True) if ids19_path.exists() else np.array([f"isic19_{i}" for i in range(len(X19))])
+
+    n_ham = len(X)
+    n_isic = len(X19)
+
+    X_ext   = np.concatenate([X, X19], axis=0)
+    y_ext   = np.concatenate([y, np.ones(n_isic, dtype=y.dtype)], axis=0)
+    ids_ext = np.concatenate([ids, ids19], axis=0)
+
+    # ISIC 2019 images are training-only; append their indices after HAM10000
+    new_isic_idx = np.arange(n_ham, n_ham + n_isic, dtype=idx_train.dtype)
+    idx_train_ext = np.concatenate([idx_train, new_isic_idx], axis=0)
+
+    n_mel_ham  = int((y[idx_train] == 1).sum())
+    n_mel_isic = n_isic
+    print(f"[load_arrays_extended] HAM10000 train mel: {n_mel_ham}  +  ISIC2019 mel: {n_mel_isic}"
+          f"  =  {n_mel_ham + n_mel_isic} total mel in training")
+    print(f"  Extended X shape: {X_ext.shape}")
+
+    return X_ext, y_ext, ids_ext, idx_train_ext, idx_val, idx_test
 
 
 # ----------------------------------------------------------------------------
