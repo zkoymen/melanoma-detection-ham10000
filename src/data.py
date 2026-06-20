@@ -109,8 +109,19 @@ def load_arrays_extended(data_dir: Path, use_local_cache: bool = True):
         print("  Run notebooks/12_isic2019_prep.ipynb first to build it.")
         return X, y, ids, idx_train, idx_val, idx_test
 
-    X19 = np.load(x19_path)          # (N19, 448, 448, 3) uint8
+    X19 = np.load(x19_path)          # (N19, H, H, 3) uint8
     ids19 = np.load(ids19_path, allow_pickle=True) if ids19_path.exists() else np.array([f"isic19_{i}" for i in range(len(X19))])
+
+    # Resize X19 if its spatial dims differ from HAM10000 (e.g. 448 vs 224)
+    target_size = X.shape[1]
+    if X19.shape[1] != target_size or X19.shape[2] != target_size:
+        import cv2
+        print(f"  Resizing ISIC 2019 from {X19.shape[1]}px → {target_size}px ...")
+        X19_r = np.zeros((len(X19), target_size, target_size, 3), dtype=np.uint8)
+        for i, img in enumerate(X19):
+            X19_r[i] = cv2.resize(img, (target_size, target_size), interpolation=cv2.INTER_AREA)
+        X19 = X19_r
+        print(f"  Resize done. X19 shape: {X19.shape}")
 
     n_ham = len(X)
     n_isic = len(X19)
