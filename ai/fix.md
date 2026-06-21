@@ -4,7 +4,35 @@
 
 ---
 
-## DURUM (2026-06-20)
+## YENİ PLAN (2026-06-22, Opus) — Dengeli çok-kaynaklı veri seti
+
+Teşhis: düşük F1'in 2 sebebi — (1) 1:8 eğitim dengesizliği, (2) F1'in 1:8
+DENGESİZ test setinde ölçülmesi (167 mel / 1337 non-mel → precision çöküyor).
+Çözüm: dengeli ikili veri seti + dengeli test.
+
+Tasarım (kaynak ⊥ etiket → shortcut yok):
+- mel     = tüm HAM mel (1.113) + tüm ISIC mel (4.522) = 5.635
+- non-mel = HAM non-mel (1.113) + ISIC non-mel (4.522) = 5.635  (aynı kaynak karışımı)
+- Toplam ~11.270, lesion-grouped 70/15/15, val/test tam dengeli.
+
+Kod (push edildi, commit 3163623):
+- `src/data.py`: `build_balanced_dataset()` + `load_arrays_balanced()`
+- `notebooks/12`: ISIC mel+non-mel önişle → `X_combined.npy` + idx_*_bal.npy Drive'a
+- `notebooks/04-11`: yükleyici → `load_arrays_balanced` (hepsi aynı test seti)
+- `notebooks/11`: XGBoost early_stopping_rounds → constructor (2.0 fix)
+
+ÇALIŞTIRMA SIRASI:
+1. notebook 12 (CPU/T4) → dengeli set Drive'a yazılır
+2. notebook 04 AlexNet (A100) → **DOĞRULAMA**: F1 0.51'den ~0.85+'a fırladı mı?
+   - Fırladıysa → 05-09 + 10 + 11
+   - Fırlamadıysa → DUR, Zeynep'e dön
+NOT: 10'dan önce 04-09'un HEPSİ yeniden eğitilmeli (stale prediction = bozuk ensemble).
+NOT: 01/02/03 (CPU baseline) sonra güncellenecek — aynı test seti için.
+Beklenen: ensemble F1 0.90-0.93, AUC ~0.96-0.97.
+
+---
+
+## DURUM (2026-06-20, eski plan — üstteki yeni planla değişti)
 
 | Fix | Durum | Notlar |
 |---|---|---|
