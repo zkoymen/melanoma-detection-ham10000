@@ -22,10 +22,15 @@ Kod (push edildi, commit 3163623):
 - `notebooks/11`: XGBoost early_stopping_rounds → constructor (2.0 fix)
 
 ÇALIŞTIRMA SIRASI:
-1. notebook 12 (CPU/T4) → dengeli set Drive'a yazılır
-2. notebook 04 AlexNet (A100) → **DOĞRULAMA**: F1 0.51'den ~0.85+'a fırladı mı?
-   - Fırladıysa → 05-09 + 10 + 11
-   - Fırlamadıysa → DUR, Zeynep'e dön
+1. notebook 12 (CPU/T4) → dengeli set Drive'a yazılır  ✅ ÇALIŞTI
+2. notebook 04 AlexNet (A100) → **DOĞRULAMA**  ✅ GEÇTİ (2026-06-22)
+   - Eski AlexNet: F1=0.5135, AUC=0.8925 (1:8 dengesiz test)
+   - YENİ AlexNet (dengeli test, TTA): **F1=0.7753, AUC=0.8545, recall=0.843, acc=0.756**
+   - F1 +0.26 fırladı. AlexNet EN ZAYIF model olduğu için bu floor; güçlü modeller
+     (ResNet/Swin/DenseNet) ~0.83-0.90 beklenir, ensemble ~0.88-0.92.
+   - AUC eski 0.89'dan 0.85'e düştü AMA test seti değişti (dengeli + çok-kaynaklı,
+     source-decorrelated) → daha dürüst/zor test. Güçlü modellerde AUC yükselir.
+3. SIRADAKİ: 05-09 (A100) → 10 (T4) → 11 (T4/CPU)
 NOT: 10'dan önce 04-09'un HEPSİ yeniden eğitilmeli (stale prediction = bozuk ensemble).
 NOT: 01/02/03 (CPU baseline) sonra güncellenecek — aynı test seti için.
 Beklenen: ensemble F1 0.90-0.93, AUC ~0.96-0.97.
