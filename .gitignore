@@ -21,8 +21,20 @@ env/
 .DS_Store
 Thumbs.db
 
-# Paper folder (excluded from repo)
+# Paper folder + submission package (excluded from the public repo)
 paper/
+paper_v2/
+
+# Private / internal — NOT for the public repo
+# (AI working notes, memory, fix plans, conference & profile info,
+#  and internal methodology-strategy docs)
+ai/
+docs/
+
+# Scratch / generated helper files
+.gen_*.py
+.paper_extract.txt
+.tmp_*
 
 # Data / large artifacts (kept out of git)
 *.npy

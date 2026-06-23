@@ -1,11 +1,11 @@
 {
-  "accuracy": 0.9328010645375915,
-  "precision": 0.6987951807228916,
-  "recall": 0.6946107784431138,
-  "f1": 0.6966966966966966,
-  "roc_auc": 0.9540499838646062,
+  "accuracy": 0.8074204946996466,
+  "precision": 0.7589285714285714,
+  "recall": 0.901060070671378,
+  "f1": 0.8239095315024233,
+  "roc_auc": 0.9160170421517174,
   "train_time_sec": 0.0,
-  "inference_time_per_image_ms": 5.665896393079454,
+  "inference_time_per_image_ms": 8.32219307779283,
   "hyperparameters": {
     "members": [
       "alexnet",
@@ -16,6 +16,6 @@
       "swin_tiny"
     ],
     "weights": "uniform soft-vote",
-    "decision_threshold_tta": 0.5549999999999999
+    "decision_threshold_tta": 0.4099999999999999
   }
 }

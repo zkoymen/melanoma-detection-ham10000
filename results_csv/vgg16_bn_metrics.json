@@ -1,14 +1,14 @@
 {
-  "accuracy": 0.9161676646706587,
-  "precision": 0.6227544910179641,
-  "recall": 0.6227544910179641,
-  "f1": 0.6227544910179641,
-  "roc_auc": 0.9190003227078777,
+  "accuracy": 0.7850412249705536,
+  "precision": 0.7415169660678643,
+  "recall": 0.8751472320376914,
+  "f1": 0.8028092922744462,
+  "roc_auc": 0.8866843969417355,
   "train_time_sec": 0.0,
-  "inference_time_per_image_ms": 5.506442057951561,
+  "inference_time_per_image_ms": 5.53422541444237,
   "hyperparameters": {
     "recovered_from_checkpoint": true,
-    "decision_threshold_tta": 0.585,
-    "decision_threshold_single": 0.6599999999999999
+    "decision_threshold_tta": 0.33999999999999997,
+    "decision_threshold_single": 0.4099999999999999
   }
 }

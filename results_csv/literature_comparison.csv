@@ -7,11 +7,11 @@ Albahli 2025 [37],YOLOv8 multi-dataset,ISIC2020+HAM10000+PH2,—,0.905
 Bansal et al. 2022 [21],Handcrafted + EfficientNet-B0 + ANN,HAM10000,0.949,—
 This work — baseline_logistic,logistic regression on raw pixels,"HAM10000 (binary, lesion-grouped)",0.7957,0.3132
 This work — classical_ml_svm,HOG + Color + GLCM + PCA + RBF-SVM,"HAM10000 (binary, lesion-grouped)",0.8397,0.4356
-This work — alexnet,single CNN (TL+focal+TTA),"HAM10000 (binary, lesion-grouped)",0.8802,0.5135
-This work — vgg16_bn,single CNN (TL+focal+TTA),"HAM10000 (binary, lesion-grouped)",0.9162,0.6228
-This work — resnet50,single CNN (TL+focal+TTA),"HAM10000 (binary, lesion-grouped)",0.9255,0.6836
-This work — efficientnet_b3,single CNN (TL+focal+TTA),"HAM10000 (binary, lesion-grouped)",0.8975,0.5769
-This work — densenet121,single CNN (TL+focal+TTA),"HAM10000 (binary, lesion-grouped)",0.9208,0.6149
-This work — swin_tiny,single CNN (TL+focal+TTA),"HAM10000 (binary, lesion-grouped)",0.9168,0.6575
-This work — hybrid_fusion,handcrafted + ABCD + deep + SMOTE-Tomek + MLP/XGBoost,"HAM10000 (binary, lesion-grouped)",0.9261,0.6647
-This work — ensemble,soft-vote ensemble,"HAM10000 (binary, lesion-grouped)",0.9328,0.6967
+This work — alexnet,single CNN (TL+focal+TTA),"HAM10000 (binary, lesion-grouped)",0.7538,0.7743
+This work — vgg16_bn,single CNN (TL+focal+TTA),"HAM10000 (binary, lesion-grouped)",0.7850,0.8028
+This work — resnet50,single CNN (TL+focal+TTA),"HAM10000 (binary, lesion-grouped)",0.7803,0.8068
+This work — efficientnet_b3,single CNN (TL+focal+TTA),"HAM10000 (binary, lesion-grouped)",0.7574,0.7872
+This work — densenet121,single CNN (TL+focal+TTA),"HAM10000 (binary, lesion-grouped)",0.8009,0.8159
+This work — swin_tiny,single CNN (TL+focal+TTA),"HAM10000 (binary, lesion-grouped)",0.8351,0.8378
+This work — hybrid_fusion,handcrafted + ABCD + deep + SMOTE-Tomek + MLP/XGBoost,"HAM10000 (binary, lesion-grouped)",0.8404,0.8438
+This work — ensemble,soft-vote ensemble,"HAM10000 (binary, lesion-grouped)",0.8074,0.8239
