@@ -1,11 +1,11 @@
 {
-  "accuracy": 0.7957418496340652,
-  "precision": 0.25,
-  "recall": 0.41916167664670656,
-  "f1": 0.3131991051454139,
-  "roc_auc": 0.7337480727168417,
-  "train_time_sec": 217.1877281665802,
-  "inference_time_per_image_ms": 0.03087704999984453,
+  "accuracy": 0.6083627797408716,
+  "precision": 0.6274238227146814,
+  "recall": 0.5335689045936396,
+  "f1": 0.576702737110121,
+  "roc_auc": 0.654950534197372,
+  "train_time_sec": 264.5882308483124,
+  "inference_time_per_image_ms": 0.050383645000238175,
   "hyperparameters": {
     "class_weight": "balanced",
     "max_iter": 1000,
