@@ -1,5 +1,4 @@
 ablation,accuracy,precision,recall,f1,roc_auc
-Loss + sampling: softened class-weight (legacy B0),0.9029,0.5614,0.5749,0.568,0.9062
 Loss + sampling: Focal + WeightedRandomSampler (B3),0.7574,0.701,0.8975,0.7872,0.872
 TTA OFF (mean across 6 CNNs),,,,0.8024,
 TTA ON  (mean across 6 CNNs),,,,0.8041,

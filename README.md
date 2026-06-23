@@ -50,8 +50,12 @@ so no lesion — and no augmented copy of a test image — leaks into training.
 
 ## 2. Headline results (balanced HAM10000 + ISIC 2019 test set, 1,698 images, 849/849)
 
+All ten methods are trained and evaluated on the identical balanced split.
+
 | Method | Accuracy | Precision | Recall | F1 | ROC-AUC |
 |---|---|---|---|---|---|
+| Logistic regression (raw 64×64) | 0.6084 | 0.6274 | 0.5336 | 0.5767 | 0.6550 |
+| Classical ML (HOG + Color + GLCM + PCA + SVM) | 0.6938 | 0.6915 | 0.6996 | 0.6956 | 0.7792 |
 | AlexNet | 0.7538 | 0.7149 | 0.8445 | 0.7743 | 0.8544 |
 | VGG16-BN | 0.7850 | 0.7415 | 0.8751 | 0.8028 | 0.8867 |
 | ResNet50 | 0.7803 | 0.7200 | 0.9176 | 0.8068 | 0.8915 |
@@ -69,10 +73,6 @@ values are measured on a leak-free, balanced, source-decorrelated test; they
 are a deliberately more conservative estimate than the 0.95–0.99 figures
 common on HAM10000, which are largely inflated by image-level splits and
 augment-before-split leakage.
-
-> The two classical baselines (logistic regression F1 0.3132, HOG+SVM
-> F1 0.4356) are currently reported on the original HAM-only 1:8 test set and
-> are pending re-evaluation on the balanced split.
 
 ## 3. Repository structure
 
