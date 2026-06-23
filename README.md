@@ -16,9 +16,15 @@ Computer Engineering, Spring 2025–2026.
 
 ## 1. What this project does
 
-We benchmark **ten methods** on the HAM10000 dermoscopic image dataset
-for the binary classification task *melanoma vs. all other lesions*
-(class ratio ≈ 1:8). The benchmark covers:
+We benchmark **ten methods** for the binary classification task
+*melanoma vs. all other lesions* under a deliberately strict evaluation
+protocol that is **leak-free, balanced, cross-dataset and
+source-decorrelated**: melanoma and non-melanoma images are drawn from
+**both HAM10000 and ISIC 2019** with the same per-class source mixture (so
+the dataset source is statistically independent of the label), lesions are
+split 70/15/15 by `lesion_id`, and the validation/test partitions are
+exactly balanced (test set: **1,698 images, 849/849**). The benchmark
+covers:
 
 1. Logistic regression on raw 64×64 pixels (simple baseline).
 2. Classical machine learning — HOG + HSV colour histogram + GLCM
@@ -38,27 +44,35 @@ All deep models share the same training recipe: focal loss with
 class-balanced α, weighted random sampling, conservative medical-grade
 augmentation, AdamW with linear warm-up and cosine annealing,
 exponential moving average of weights, eight-way test-time augmentation,
-and validation-tuned decision thresholds. Every method evaluates on the
-same held-out test set under a strict lesion-grouped stratified split
-(70 / 15 / 15) so that no lesion contributes images to more than one
-partition.
+and validation-tuned decision thresholds. The split is computed once and
+augmentation is applied to the training partition only, *after* the split,
+so no lesion — and no augmented copy of a test image — leaks into training.
 
-The full report is in [`paper/melanoma_paper.pdf`](paper/melanoma_paper.pdf).
+## 2. Headline results (balanced HAM10000 + ISIC 2019 test set, 1,698 images, 849/849)
 
-## 2. Headline results (lesion-grouped test set, natural 1:8 imbalance)
+| Method | Accuracy | Precision | Recall | F1 | ROC-AUC |
+|---|---|---|---|---|---|
+| AlexNet | 0.7538 | 0.7149 | 0.8445 | 0.7743 | 0.8544 |
+| VGG16-BN | 0.7850 | 0.7415 | 0.8751 | 0.8028 | 0.8867 |
+| ResNet50 | 0.7803 | 0.7200 | 0.9176 | 0.8068 | 0.8915 |
+| EfficientNet-B3 | 0.7574 | 0.7010 | 0.8975 | 0.7872 | 0.8720 |
+| DenseNet121 | 0.8009 | 0.7589 | 0.8822 | 0.8159 | 0.9037 |
+| Swin-Tiny (best single CNN) | 0.8351 | 0.8244 | 0.8516 | 0.8378 | **0.9198** |
+| Soft-vote ensemble (6 CNNs) | 0.8074 | 0.7589 | **0.9011** | 0.8239 | 0.9160 |
+| **Hybrid fusion (Method 10)** | 0.8404 | 0.8262 | 0.8622 | **0.8438** | 0.9172 |
 
-| Method | Accuracy | F1 | ROC-AUC |
-|---|---|---|---|
-| Logistic regression baseline | 0.7957 | 0.3132 | 0.7337 |
-| Classical ML (HOG + Color + GLCM + SVM) | 0.8397 | 0.4356 | 0.8350 |
-| AlexNet | 0.8802 | 0.5135 | 0.8925 |
-| VGG16-BN | 0.9162 | 0.6228 | 0.9190 |
-| ResNet50 | 0.9255 | 0.6836 | 0.9470 |
-| EfficientNet-B3 | 0.8975 | 0.5769 | 0.9189 |
-| DenseNet121 | 0.9208 | 0.6149 | 0.9369 |
-| Swin-Tiny | 0.9168 | 0.6575 | 0.9400 |
-| **Soft-vote ensemble (6 CNNs)** | **0.9328** | **0.6967** | **0.9540** |
-| Hybrid fusion (Method 10) | 0.9261 | 0.6647 | 0.9218 |
+The **hybrid fusion** classifier attains the best F1 (0.8438), **Swin-Tiny**
+is the strongest single architecture (F1 0.8378, AUC 0.9198), and the
+**soft-vote ensemble** attains the highest recall (0.9011) — the operating
+characteristic preferred for clinical screening. These honest mid-0.80 F1
+values are measured on a leak-free, balanced, source-decorrelated test; they
+are a deliberately more conservative estimate than the 0.95–0.99 figures
+common on HAM10000, which are largely inflated by image-level splits and
+augment-before-split leakage.
+
+> The two classical baselines (logistic regression F1 0.3132, HOG+SVM
+> F1 0.4356) are currently reported on the original HAM-only 1:8 test set and
+> are pending re-evaluation on the balanced split.
 
 ## 3. Repository structure
 
@@ -68,8 +82,6 @@ The full report is in [`paper/melanoma_paper.pdf`](paper/melanoma_paper.pdf).
 ├── requirements.txt                   pip dependencies
 ├── config.py                          all paths and hyperparameters
 ├── experiments_log.md                 hardware, seed, hyperparameter list
-├── paper/
-│   └── melanoma_paper.pdf             IEEE-formatted final report
 ├── notebooks/                         the twelve Jupyter notebooks
 │   ├── 00_data_setup.ipynb
 │   ├── 01_baseline_logistic.ipynb
