@@ -5,11 +5,16 @@ hyperparameters used to produce every result in the paper. It is the
 "Experiment Logs" deliverable from the final-project brief (hardware,
 seed, hyperparameter list).
 
-The live numerical results are in `MyDrive/melanoma/results/`:
-`comparison_table.csv`, `ablation_table.csv`, `literature_comparison.csv`,
-plus per-method `*_metrics.json` and `*_predictions.csv`. The aggregation
-notebook (`notebooks/10_aggregation.ipynb`) reads those into the
-publication tables.
+The live numerical results are in `results_csv/` in this repository
+(`comparison_table.csv`, `ablation_table.csv`, `literature_comparison.csv`,
+plus per-method `*_metrics.json`) and, at run time, in
+`MyDrive/melanoma/results/`. The aggregation notebook
+(`notebooks/10_aggregation.ipynb`) and the hybrid-fusion notebook
+(`notebooks/11_hybrid_fusion.ipynb`) read those into the publication tables.
+
+All numbers below are the balanced, cross-dataset, source-decorrelated
+evaluation (HAM10000 + ISIC 2019; test set 1,698 images, 849 melanoma /
+849 non-melanoma).
 
 ---
 
@@ -23,13 +28,13 @@ publication tables.
 | CPU runtime | for notebooks 00, 01, 02, 10, 11 (Standard runtime) |
 | RAM | 83.5 GB (A100 high-RAM Colab Pro+ tier) |
 | Disk | `/content` SSD ~225 GB; Drive FUSE for persistence |
-| Compute units spent | ~50+ paid units across all final runs |
 
 The course brief stated that the project could be completed on free
 Colab. We deliberately used the paid Pro+ tier with A100 access so the
 six CNNs could be **fully fine-tuned** (head + entire backbone) rather
 than last-layer transfer-learned, and so 8-way test-time augmentation
-could be applied to every test image without runtime pressure.
+could be applied to every test image without runtime pressure. Total CNN
+training time (all six) is approximately **3.5 hours of A100 compute**.
 
 ## 2. Software stack
 
@@ -44,13 +49,14 @@ could be applied to every test image without runtime pressure.
 | OpenCV (`cv2`) | 4.8 |
 | imbalanced-learn (SMOTE-Tomek) | 0.12 |
 | XGBoost | 2.0 |
+| SHAP (interpretability, notebook 11) | ≥0.44 |
 | matplotlib | 3.7 |
 | pandas | 2.x |
 | numpy | 1.26 |
 
-All packages are listed in `requirements.txt`. Colab provides PyTorch
-and torchvision pre-installed; the notebook preambles only `pip install
---quiet timm` to add the timm dependency.
+Colab ships PyTorch and torchvision pre-installed; the notebook preambles
+`pip install` only the extra dependencies (`timm`, `imbalanced-learn`,
+`xgboost`, `shap`).
 
 ## 3. Reproducibility
 
@@ -58,24 +64,25 @@ and torchvision pre-installed; the notebook preambles only `pip install
 |---|---|
 | Global seed | **42** |
 | numpy, torch, random, torch.cuda — all seeded | yes |
-| Stratified split | lesion-grouped 70 / 15 / 15 (Tschandl / Cassidy 2022) |
-| Split indices | saved as `idx_train.npy`, `idx_val.npy`, `idx_test.npy` to Drive |
-| All methods evaluate on the **same** test set | yes |
-| Train-time augmentation seeding | per-epoch via DataLoader workers; deterministic with seed |
+| Split | lesion-grouped 70/15/15 (Tschandl / Cassidy 2022) |
+| Split constraint | grouped by `lesion_id`; validation and test exactly class-balanced |
+| Split indices | saved as `idx_*_bal.npy` to Drive; every method evaluates on the same test index set |
+| Source decorrelation | both classes drawn from HAM10000 + ISIC 2019 with the same per-class source mixture (source ⟂ label) |
+| Train-time augmentation seeding | per-epoch via DataLoader workers; deterministic with the seed |
 
 ## 4. Dataset
 
 | Item | Value |
 |---|---|
-| Source | Kaggle `kmader/skin-cancer-mnist-ham10000` |
-| Original size | 10,015 dermoscopic images, 7 dx codes |
+| Sources | HAM10000 (`kmader/skin-cancer-mnist-ham10000`) + ISIC 2019 (`andrewmvd/isic-2019`) |
 | Binarisation | `y = 1 if dx == "mel" else 0` |
-| Class counts (full) | melanoma 1,113 / non-melanoma 8,902 (~1:8) |
-| Stored array shape | `(10015, 448, 448, 3)` uint8 RGB |
+| Corpus | balanced ~11,270 images (1:1) after size-matching the two classes |
+| Stored array shape | `448×448×3` uint8 RGB (per image) |
 | Preprocessing | DullRazor hair removal → Otsu segmentation in LAB-L → largest CC → 15% margin bbox crop → resize 448×448 |
 | Segmentation fallback rate | ~3.5% of images (Otsu rejected → centred square crop) |
-| Split sizes | train 7,008  /  val 1,503  /  test 1,504 |
-| Test class counts | non-mel ≈ 1,337  /  mel ≈ 167 |
+| Train split | 7,856 images (before SMOTE: non-mel 3,937 / mel 3,919) |
+| Test split | **1,698 images (849 mel / 849 non-mel)** — exactly balanced |
+| Validation split | balanced, ~15% of the corpus |
 
 ## 5. Hyperparameters (shared CNN recipe — methods 3–8)
 
@@ -99,17 +106,15 @@ Single source of truth: `config.py`. Values used in every CNN notebook:
 | Focal loss γ | 2.0 |
 | Focal loss β (class-balanced α) | 0.999 |
 | WeightedRandomSampler | enabled (replacement=True) |
-| Mixup α | 0.0 (intentionally disabled — see paper §III) |
-| CutMix α | 0.0 (intentionally disabled) |
-| RandAugment | disabled (color ops would distort ABCD signal) |
+| Mixup α | 0.2 (30% of stage-2 batches) |
+| CutMix α | 0.0 (intentionally disabled — see paper §III) |
+| RandAugment | disabled (color ops would distort the ABCD signal) |
 | RandomResizedCrop scale | (0.85, 1.00) |
-| Rotation range | ±15° |
-| ColorJitter — brightness | 0.10 |
-| ColorJitter — contrast | 0.10 |
-| ColorJitter — saturation | 0.05 |
-| ColorJitter — hue | 0.02 |
-| RandomErasing probability | 0.10 |
-| RandomErasing scale | (0.02, 0.10) |
+| Rotation range | ±30° |
+| ColorJitter — brightness / contrast | 0.25 |
+| ColorJitter — saturation | 0.20 |
+| ColorJitter — hue | 0.05 |
+| RandomErasing probability | 0.20 |
 | ImageNet normalisation | mean (0.485, 0.456, 0.406), std (0.229, 0.224, 0.225) |
 | TTA transforms | identity, hflip, vflip, hvflip, rot90, rot180, rot270, hflip+rot90 (8-way) |
 | Decision threshold | F1-maximising on validation, sweep 181 points in [0.05, 0.95] |
@@ -125,75 +130,72 @@ Single source of truth: `config.py`. Values used in every CNN notebook:
 | DenseNet121 | 320 | 32 | torchvision IMAGENET1K_V1 |
 | Swin-Tiny | 224 | 32 | timm `swin_tiny_patch4_window7_224` pretrained |
 
-### Classical / baseline hyperparameters
+### Classical / baseline / hybrid hyperparameters
 
 | Method | Key values |
 |---|---|
-| Method 1 — Logistic Regression baseline | input 64×64 raw pixels; `class_weight='balanced'`; `max_iter=1000`; default L2 regularisation |
-| Method 2 — Classical ML SVM | input 128×128; HOG (8×8 pixels/cell, 2×2 cells/block); HSV color histogram (8 bins/channel); GLCM at distances=(1,) angles=(0°,45°,90°,135°); PCA(200); RBF-SVM with `C=1`, `gamma='scale'`, `class_weight='balanced'`, `probability=True` |
-| Method 10 — Hybrid fusion | handcrafted (2292-D) + ABCD (13-D) + 6-CNN penultimate features concatenated (13,568-D = 2048 ResNet50 + 1024 DenseNet121 + 1536 EfficientNet-B3 + 768 Swin-Tiny + 4096 VGG16-BN + 4096 AlexNet) → StandardScaler → PCA(300) → SMOTE-Tomek (train only) → MLP [256-128-2] and XGBoost (n=500, depth=6, lr=0.05) — winner chosen by validation F1 |
+| Method 1 — Logistic Regression baseline | input 64×64 raw pixels; `class_weight='balanced'`; `max_iter=1000`; L-BFGS |
+| Method 2 — Classical ML SVM | input 128×128; HOG (16×16 cells, 2×2 blocks, 9 bins); HSV histogram (8 bins/ch); GLCM d=(1,), angles (0,45,90,135°); PCA(200); RBF-SVM `class_weight='balanced'` |
+| Method 10 — MelFidAI (hybrid fusion) | handcrafted (2,292-D) + ABCD (13-D) + 6-CNN penultimate (13,568-D) = 15,873-D → StandardScaler(no-center) → TruncatedSVD(300, expl. var. ≈0.634) → SMOTE-Tomek (train only, {0:3937,1:3919}→{0:3844,1:3844}) → MLP [256-128] and XGBoost (500 trees, depth 6, lr 0.05); winner by validation F1 (XGBoost, threshold 0.365) |
 
-## 6. Per-method results (test set, lesion-grouped split)
+## 6. Per-method results (balanced cross-dataset test set, 1,698 images)
 
-Recovered from `MyDrive/melanoma/results/*_metrics.json` on 2026-05-25.
-All deep-learning rows use 8-way TTA at inference and a validation-tuned
-decision threshold.
+From `results_csv/comparison_table.csv`. All deep-learning rows use 8-way TTA
+at inference and a validation-tuned decision threshold.
 
-| Method | Acc | Prec | Rec | F1 | ROC-AUC | Threshold | Inf (ms/img) | Approx training time (A100) |
-|---|---|---|---|---|---|---|---|---|
-| Logistic regression baseline | 0.7957 | 0.2500 | 0.4192 | 0.3132 | 0.7337 | 0.5 | 0.03 | 217 s (CPU) |
-| Classical ML SVM | 0.8397 | 0.3577 | 0.5569 | 0.4356 | 0.8350 | 0.5 | 1.13 | 31 s (CPU) |
-| AlexNet | 0.8802 | 0.4680 | 0.5689 | 0.5135 | 0.8925 | 0.620 (TTA) | 0.78 | ~20 min (~1200 s) |
-| VGG16-BN | 0.9162 | 0.6228 | 0.6228 | 0.6228 | 0.9190 | 0.585 (TTA) | 5.51 | ~50 min (~3000 s) |
-| ResNet50 | 0.9255 | 0.6471 | 0.7246 | 0.6836 | 0.9470 | 0.440 (TTA) | 5.72 | ~35 min (~2100 s) |
-| EfficientNet-B3 | 0.8975 | 0.5330 | 0.6287 | 0.5769 | 0.9189 | 0.600 (TTA) | 6.73 | ~40 min (~2400 s) |
-| DenseNet121 | 0.9208 | 0.6690 | 0.5689 | 0.6149 | 0.9369 | 0.630 (TTA) | 7.67 | ~30 min (~1800 s) |
-| Swin-Tiny | 0.9168 | 0.6061 | 0.7186 | 0.6575 | 0.9400 | 0.495 (TTA) | 7.60 | ~35 min (~2100 s) |
-| **Ensemble (6 CNNs, soft-vote)** | **0.9328** | **0.6988** | **0.6946** | **0.6967** | **0.9540** | 0.555 | 5.67 | 0 (post-hoc aggregation) |
-| Hybrid fusion (Method 10) | 0.9261 | 0.6707 | 0.6587 | 0.6647 | 0.9218 | 0.09 (XGBoost) | 0.0001 | 5.7 s (shallow only; 6-CNN features pre-extracted) |
+| Method | Acc | Prec | Rec | F1 | ROC-AUC | Inf (ms/img) |
+|---|---|---|---|---|---|---|
+| Logistic regression (raw 64×64) | 0.6084 | 0.6274 | 0.5336 | 0.5767 | 0.6550 | 0.05 |
+| Classical ML SVM | 0.6938 | 0.6915 | 0.6996 | 0.6956 | 0.7792 | 2.89 |
+| AlexNet | 0.7538 | 0.7149 | 0.8445 | 0.7743 | 0.8544 | 0.76 |
+| VGG16-BN | 0.7850 | 0.7415 | 0.8751 | 0.8028 | 0.8867 | 5.53 |
+| ResNet50 | 0.7803 | 0.7200 | **0.9176** | 0.8068 | 0.8915 | 5.78 |
+| EfficientNet-B3 | 0.7574 | 0.7010 | 0.8975 | 0.7872 | 0.8720 | 22.65 |
+| DenseNet121 | 0.8009 | 0.7589 | 0.8822 | 0.8159 | 0.9037 | 7.57 |
+| Swin-Tiny | 0.8351 | 0.8244 | 0.8516 | 0.8378 | **0.9198** | 7.64 |
+| Soft-vote ensemble (6 CNNs) | 0.8074 | 0.7589 | 0.9011 | 0.8239 | 0.9160 | ~49.9† |
+| **MelFidAI (hybrid fusion, M10)** | 0.8404 | 0.8262 | 0.8622 | **0.8438** | 0.9172 | ~49.9† |
 
-Total CNN training time (all six) ≈ **3.5 hours of A100 compute**.
+† Both the soft-vote ensemble and MelFidAI require a forward pass through all
+six CNNs, so their end-to-end latency is dominated by the six upstream feature
+extractors (Σ ≈ 49.9 ms/img); the soft-vote aggregation and the shallow fusion
+classifier each add <0.01 ms on precomputed features.
+
+Ensemble confusion matrix (balanced test): TP=765, FP=243, FN=84, TN=606
+(recall 0.9011).
 
 ## 7. Ablation results (no extra training)
 
-From `MyDrive/melanoma/results/ablation_table.csv`:
+From `results_csv/ablation_table.csv`:
 
 | Configuration | F1 |
 |---|---|
-| Threshold = 0.5 (no tuning), mean across 6 CNNs | 0.5735 |
-| Threshold tuned on validation, mean across 6 CNNs | 0.6115 |
-| TTA OFF (single forward), mean across 6 CNNs | 0.6144 |
-| TTA ON (8-way average), mean across 6 CNNs | 0.6115 |
-| Best single CNN (ResNet50, test) | 0.6836 |
-| Soft-vote ensemble (6 CNNs) | **0.6967** |
-| Loss/sampling: softened class-weight (legacy EfficientNet-B0) | 0.5680 |
-| Loss/sampling: focal + WeightedRandomSampler (EfficientNet-B3) | 0.5769 |
+| Decision threshold = 0.5 (mean across 6 CNNs) | 0.8025 |
+| Decision threshold tuned on val (mean across 6 CNNs) | 0.8041 |
+| TTA OFF (single forward, mean across 6 CNNs) | 0.8024 |
+| TTA ON (8-way average, mean across 6 CNNs) | 0.8041 |
+| Best single CNN (Swin-Tiny) | 0.8378 |
+| Soft-vote ensemble (6 CNNs) | 0.8239 |
+| MelFidAI (handcrafted + ABCD + deep) | **0.8438** |
 
-## 8. Methodology evolution
+On a balanced test set the threshold-tuning and TTA gains are small (the
+default operating point is already near-optimal), unlike the large gains seen
+under a heavily imbalanced test.
 
-The earlier course report committed to EfficientNet-B0 transfer learning
-as the modern deep-learning baseline. The final project deepened this to
-EfficientNet-B3 with full fine-tuning and added five further CNN
-architectures (AlexNet, VGG16-BN, ResNet50, DenseNet121, Swin-Tiny) to
-satisfy the AlexNet + VGG + ResNet comparative-analysis requirement.
-The classical-ML pipeline (HOG + HSV histogram + GLCM + PCA + RBF-SVM)
-was retained unchanged from the earlier commitment.
+Additional analyses produced by `notebooks/11_hybrid_fusion.ipynb` (no CNN
+retraining): a feature-block ablation of MelFidAI (deep vs. handcrafted vs.
+ABCD), a PCA explained-variance sensitivity sweep, a McNemar test of
+MelFidAI vs. Swin-Tiny with bootstrap 95% confidence intervals, and a
+Tree-SHAP interpretation of the fusion booster. See `paper/HOW_TO_FINALIZE.md`.
 
-## 9. Where the artefacts live
+## 8. Where the artefacts live
 
 ```
+results_csv/                       committed CSV + per-method JSON (this repo)
 MyDrive/melanoma/
-├── kaggle.json
-├── data/
-│   ├── X_all.npy                 (1.6 GB uint8, (10015, 448, 448, 3))
-│   ├── y_all.npy
-│   ├── ids_all.npy               (object dtype; allow_pickle=True)
-│   ├── lesion_ids_all.npy        (for lesion-grouped split)
-│   ├── seg_fallback_all.npy      (1 if Otsu rejected, 0 otherwise)
-│   ├── idx_train.npy             (7008 indices)
-│   ├── idx_val.npy               (1503 indices)
-│   └── idx_test.npy              (1504 indices)
+├── data/                          X_combined.npy, idx_*_bal.npy, lesion ids
 ├── results/                       CSVs, JSONs, PNGs — one set per method
-├── checkpoints/                   resnet50_best.pt, etc.
-└── paper/                         tables and figures
+│   └── paper_generated/           .tex / .png produced by notebook 11 for the paper
+├── checkpoints/                   <arch>_best.pt
+└── ...
 ```

@@ -58,17 +58,18 @@ All ten methods are trained and evaluated on the identical balanced split.
 | Classical ML (HOG + Color + GLCM + PCA + SVM) | 0.6938 | 0.6915 | 0.6996 | 0.6956 | 0.7792 |
 | AlexNet | 0.7538 | 0.7149 | 0.8445 | 0.7743 | 0.8544 |
 | VGG16-BN | 0.7850 | 0.7415 | 0.8751 | 0.8028 | 0.8867 |
-| ResNet50 | 0.7803 | 0.7200 | 0.9176 | 0.8068 | 0.8915 |
+| ResNet50 | 0.7803 | 0.7200 | **0.9176** | 0.8068 | 0.8915 |
 | EfficientNet-B3 | 0.7574 | 0.7010 | 0.8975 | 0.7872 | 0.8720 |
 | DenseNet121 | 0.8009 | 0.7589 | 0.8822 | 0.8159 | 0.9037 |
 | Swin-Tiny (best single CNN) | 0.8351 | 0.8244 | 0.8516 | 0.8378 | **0.9198** |
-| Soft-vote ensemble (6 CNNs) | 0.8074 | 0.7589 | **0.9011** | 0.8239 | 0.9160 |
+| Soft-vote ensemble (6 CNNs) | 0.8074 | 0.7589 | 0.9011 | 0.8239 | 0.9160 |
 | **Hybrid fusion (Method 10)** | 0.8404 | 0.8262 | 0.8622 | **0.8438** | 0.9172 |
 
 The **hybrid fusion** classifier attains the best F1 (0.8438), **Swin-Tiny**
 is the strongest single architecture (F1 0.8378, AUC 0.9198), and the
-**soft-vote ensemble** attains the highest recall (0.9011) — the operating
-characteristic preferred for clinical screening. These honest mid-0.80 F1
+**soft-vote ensemble** is tuned to a high-recall operating point (0.9011) with
+better precision than the highest-recall single CNN (ResNet50, recall 0.9176) —
+the trade-off preferred for clinical screening. These honest mid-0.80 F1
 values are measured on a leak-free, balanced, source-decorrelated test; they
 are a deliberately more conservative estimate than the 0.95–0.99 figures
 common on HAM10000, which are largely inflated by image-level splits and
