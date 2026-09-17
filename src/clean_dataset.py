@@ -301,7 +301,7 @@ def build_clean_isic_master_dataset(
     np.save(output_dir / "idx_test_bal.npy", idx_test)
 
     manifest = {
-        "dataset_version": "clean_v2_isic2019_master",
+        "dataset_version": "clean_v2_isic2019_balanced_subset",
         "policy": "ISIC 2019 aggregate corpus; HAM10000 used for provenance audit only",
         "seed": int(seed),
         "split": {"train_frac": train_frac, "val_frac": val_frac, "test_frac": 1 - train_frac - val_frac,
@@ -313,6 +313,13 @@ def build_clean_isic_master_dataset(
             "duplicate_image_id_rows_removed": duplicate_id_rows,
             "duplicate_exact_hash_rows_removed": duplicate_hash_rows,
             "selected_images": int(len(X)),
+        },
+        "sampling": {
+            "policy": "equal binary classes after deduplication",
+            "melanoma_images": int(np.sum(y == 1)),
+            "non_melanoma_images": int(np.sum(y == 0)),
+            "isic2019_full_metadata_rows": int(audit["isic_metadata_rows"]),
+            "note": "This is a balanced subset of the ISIC 2019 aggregate, not the full 25,331-row corpus.",
         },
         "array_shape": list(X.shape),
         "counts": {name: _counts(y, ids, lesion_ids, idx)
