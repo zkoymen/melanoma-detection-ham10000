@@ -17,4 +17,4 @@ Use branch `codex/clean-data-protocol`.
 
 The legacy `data/`, `results/`, `checkpoints/`, and `paper/` directories are
 not deleted or overwritten. Every metric JSON produced by the corrected run
-contains `dataset_version = clean_v2_isic2019_master`.
+contains `dataset_version = clean_v2_isic2019_balanced_subset`.
