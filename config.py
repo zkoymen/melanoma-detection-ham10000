@@ -28,10 +28,13 @@ SEED = 42
 DRIVE_ROOT = Path(os.environ.get(
     "MELANOMA_DRIVE_ROOT", "/content/drive/MyDrive/melanoma"))
 KAGGLE_JSON_PATH = DRIVE_ROOT / "kaggle.json"
-DATA_DIR = DRIVE_ROOT / "data"
-RESULTS_DIR = DRIVE_ROOT / "results"
-PAPER_DIR = DRIVE_ROOT / "paper"
-CHECKPOINT_DIR = DRIVE_ROOT / "checkpoints"
+# Set MELANOMA_DATA_DIR to a versioned directory (for example
+# ``.../data_clean_v2``) before importing config in Colab.  Keeping this
+# override explicit prevents clean experiments from overwriting legacy arrays.
+DATA_DIR = Path(os.environ.get("MELANOMA_DATA_DIR", str(DRIVE_ROOT / "data")))
+RESULTS_DIR = Path(os.environ.get("MELANOMA_RESULTS_DIR", str(DRIVE_ROOT / "results")))
+PAPER_DIR = Path(os.environ.get("MELANOMA_PAPER_DIR", str(DRIVE_ROOT / "paper")))
+CHECKPOINT_DIR = Path(os.environ.get("MELANOMA_CHECKPOINT_DIR", str(DRIVE_ROOT / "checkpoints")))
 
 
 # Local scratch space — fast SSD, used to unzip the raw Kaggle images.
