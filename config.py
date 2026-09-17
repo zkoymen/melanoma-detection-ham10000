@@ -32,6 +32,7 @@ KAGGLE_JSON_PATH = DRIVE_ROOT / "kaggle.json"
 # ``.../data_clean_v2``) before importing config in Colab.  Keeping this
 # override explicit prevents clean experiments from overwriting legacy arrays.
 DATA_DIR = Path(os.environ.get("MELANOMA_DATA_DIR", str(DRIVE_ROOT / "data")))
+DATA_VERSION = os.environ.get("MELANOMA_DATA_VERSION", "legacy")
 RESULTS_DIR = Path(os.environ.get("MELANOMA_RESULTS_DIR", str(DRIVE_ROOT / "results")))
 PAPER_DIR = Path(os.environ.get("MELANOMA_PAPER_DIR", str(DRIVE_ROOT / "paper")))
 CHECKPOINT_DIR = Path(os.environ.get("MELANOMA_CHECKPOINT_DIR", str(DRIVE_ROOT / "checkpoints")))

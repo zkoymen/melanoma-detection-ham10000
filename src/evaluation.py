@@ -8,6 +8,7 @@ notebook can ingest blindly.
 from __future__ import annotations
 
 import json
+import os
 import time
 from pathlib import Path
 
@@ -84,6 +85,7 @@ def save_standard_outputs(method_name: str,
     metrics = compute_metrics(y_true, y_pred, y_prob)
     metrics["train_time_sec"] = float(train_time_sec)
     metrics["inference_time_per_image_ms"] = float(inference_time_per_image_ms)
+    metrics["dataset_version"] = os.environ.get("MELANOMA_DATA_VERSION", "unknown")
     metrics["hyperparameters"] = hyperparameters
 
     (results_dir / f"{method_name}_metrics.json").write_text(

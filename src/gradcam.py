@@ -59,7 +59,23 @@ class GradCAM:
 
 
 def overlay_heatmap(img_rgb_uint8: np.ndarray, cam: np.ndarray, alpha: float = 0.4) -> np.ndarray:
-    """Superimpose the Grad-CAM heatmap on the original image."""
+    """Superimpose a Grad-CAM heatmap on the original RGB image.
+
+    Grad-CAM is computed at the model input resolution, while the stored
+    image can have a different size (for example 224 versus a 320-pixel
+    ResNet input).  Resize the heatmap explicitly so a size mismatch cannot
+    silently turn the figure into a raw-image fallback.
+    """
+    img_rgb_uint8 = np.asarray(img_rgb_uint8)
+    cam = np.asarray(cam, dtype=np.float32)
+    if img_rgb_uint8.ndim != 3 or img_rgb_uint8.shape[-1] != 3:
+        raise ValueError(f"Expected RGB image (H,W,3), got {img_rgb_uint8.shape}")
+    if cam.ndim != 2:
+        raise ValueError(f"Expected 2-D CAM, got {cam.shape}")
+    cam = np.nan_to_num(cam, nan=0.0, posinf=1.0, neginf=0.0).clip(0.0, 1.0)
+    if cam.shape != img_rgb_uint8.shape[:2]:
+        cam = cv2.resize(cam, (img_rgb_uint8.shape[1], img_rgb_uint8.shape[0]),
+                         interpolation=cv2.INTER_LINEAR)
     heat = cv2.applyColorMap((cam * 255).astype(np.uint8), cv2.COLORMAP_JET)
     heat = cv2.cvtColor(heat, cv2.COLOR_BGR2RGB)
     return ((1 - alpha) * img_rgb_uint8 + alpha * heat).clip(0, 255).astype(np.uint8)
