@@ -211,8 +211,14 @@ def _balance_indices(idx, y, seed):
 
 
 def build_balanced_dataset(data_dir, seed=42, train_frac=0.70, val_frac=0.15,
-                           save=True, verbose=True):
-    """Construct the balanced HAM10000 + ISIC 2019 binary dataset and split.
+                           save=True, verbose=True, allow_legacy=False):
+    """Legacy HAM10000 + ISIC builder.
+
+    This function is retained only so old experiments remain readable.  It is
+    disabled by default because its historical ISIC branch fabricated one
+    pseudo-lesion per image and appended HAM10000 rows that are already present
+    in the ISIC 2019 aggregate.  Use ``src.clean_dataset`` and notebook 13 for
+    every new experiment.
 
     Both classes get the SAME source mix (HAM + ISIC), so dataset source is
     independent of the label. Lesion-grouped, class-stratified 70/15/15 split;
@@ -227,6 +233,13 @@ def build_balanced_dataset(data_dir, seed=42, train_frac=0.70, val_frac=0.15,
     Returns (X, y, ids, idx_train, idx_val, idx_test) — same signature as
     load_arrays().
     """
+    if not allow_legacy:
+        raise RuntimeError(
+            "Legacy HAM10000+ISIC builder disabled: it does not use official "
+            "ISIC lesion metadata and can duplicate HAM10000. Run "
+            "notebooks/13_clean_dataset_v2.ipynb with src.clean_dataset instead."
+        )
+
     data_dir = Path(data_dir)
     rng = np.random.default_rng(seed)
 
